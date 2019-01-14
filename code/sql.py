@@ -21,6 +21,7 @@ class sql:
             CREATE TABLE IF NOT EXISTS cities 
             (   
                 name TEXT,
+                zip_code TEXT,
                 lat FLOAT,
                 lon FLOAT,
                 city_id INT UNIQUE
@@ -41,6 +42,11 @@ class sql:
                 humidity FLOAT,
                 wind_speed FLOAT,
                 wind_deg FLOAT,
+                rain_1h FLOAT,
+                rain_3h FLOAT,
+                snow_1h FLOAT,
+                snow_3h FLOAT,
+                clouds FLOAT,
                 UNIQUE(dt, city_id),
                 FOREIGN KEY(city_id) REFERENCES cities
             )
