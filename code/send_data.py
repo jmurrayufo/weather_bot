@@ -21,11 +21,11 @@ cursor = s.cursor()
 cities = cursor.execute("SELECT city_id,name,zip_code FROM cities").fetchall()
 
 # Book ends for date range to grab for each city
-target_date = datetime.datetime.now()-datetime.timedelta(days=0)
+target_date = datetime.datetime.now()-datetime.timedelta(days=1)
 t0 = target_date.replace(hour=0, second=0, minute=0, microsecond=0)
 t1 = t0 + datetime.timedelta(hours=24)
 
-message = f"Weather report for {target_date.date()}\n"
+message = f"Weather report for {target_date.date()} ({target_date.strftime('%A')})\n"
 message += "  Max temperatures:\n"
 # print(message)
 for city in cities:
@@ -40,5 +40,7 @@ for city in cities:
 
 
 e = my_email.email("/home/jmurray/.ssh/weather_bot.json")
-#e.send("jmurrayufo@gmail.com, dmurray@facilitysolutions.us", "Weatherbot: Max Temperatures", message)
-print(message)
+e.send("jmurrayufo@gmail.com, dmurray@facilitysolutions.us", "Weatherbot: Max Temperatures", message)
+# e.send("dmurray@facilitysolutions.us", "Weatherbot: Max Temperatures", message)
+# e.send("jmurrayufo@gmail.com", "Weatherbot: Max Temperatures", message)
+# print(message)

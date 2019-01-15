@@ -27,6 +27,7 @@ class Weather:
     
     def pull(self):
         r = requests.get('https://api.openweathermap.org/data/2.5/weather', params={'zip':self.zip_code, 'appid': self.key})
+        r.raise_for_status()
         self.data = r.json()
 
 
