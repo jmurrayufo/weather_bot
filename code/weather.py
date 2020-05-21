@@ -23,7 +23,7 @@ class Weather:
         return Weather._key
 
     def __str__(self):
-        return f"Weather<{self.zip_code}>"
+        return f"Weather<{self.zip_code}>: {self.data}"
     
     def pull(self):
         r = requests.get('https://api.openweathermap.org/data/2.5/weather', params={'zip':self.zip_code, 'appid': self.key})
@@ -49,7 +49,7 @@ class Weather:
             INSERT OR IGNORE INTO weather 
             (
                 dt,
-                city_id,
+                zip_code,
                 temperature,
                 temperature_min,
                 temperature_max,
@@ -67,7 +67,7 @@ class Weather:
             VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)
         """
         values = (self.data['dt'],
-                  self.data['id'],
+                  self.zip_code,
                   self.data['main']['temp'],
                   self.data['main']['temp_min'],
                   self.data['main']['temp_max'],
