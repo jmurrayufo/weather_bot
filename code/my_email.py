@@ -14,23 +14,24 @@ class email:
 
         self.user_name = data['email_user_name']
         self.password = data['email_password']
+        self.server = data['mail_server']
+        self.port = data['port']
 
 
 
     def send(self, address, subject, message):
-        port = 465
 
-        context = ssl.create_default_context()
+        msg = MIMEText(message)
+        msg['Subject'] = subject
+        msg['To'] = address
+        msg['From'] = self.user_name
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", port, context=context) as server:
-            server.login(self.user_name, self.password)
-            msg = MIMEText(message)
-            msg['Subject'] = subject
-            msg['To'] = address
-            msg['From'] = "bigboxnoc@gmail.com"
-
-            #message = f"Subject: {subject}\n\n{message}"
-
-            #server.sendmail(self.user_name, address, message)
-            server.send_message(msg)
+        context = ssl.SSLContext(ssl.PROTOCOL_TLS)
+        connection = smtplib.SMTP(self.server, 587)
+        connection.ehlo()
+        connection.starttls(context=context)
+        connection.ehlo()
+        connection.login(self.user_name, self.password)
+        connection.send_message(msg)
+        connection.quit()
 

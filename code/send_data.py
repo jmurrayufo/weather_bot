@@ -41,9 +41,10 @@ for city in cities:
     message += f"    {city[2]}: {c_min:5.1f} - {c_max:5.1f} C   \n"
 
 
-e = my_email.email("/home/jmurray/.ssh/weather_bot.json")
+e = my_email.email("/home/jmurray/.ssh/mail.json")
 #e.send("jmurrayufo@gmail.com, dmurray@facilitysolutions.us", "Weatherbot: Min/Max Temperatures", message)
+e.send("jmurrayufo@gmail.com", "Weatherbot: Min/Max Temperatures", message)
 
 # e.send("dmurray@facilitysolutions.us", "Weatherbot: Max Temperatures", message)
 # e.send("jmurrayufo@gmail.com", "Weatherbot: Max Temperatures", message)
-print(message)
+#print(message)

@@ -1,36 +1,25 @@
 #!/usr/bin/env python
+import smtplib, ssl
 
-from pprint import pprint
-import datetime
-import sql
-import time
-import weather
-import my_email
+smtp_server = "box.isbe.house"
+port = 587  # For starttls
+sender_email = "jmurrayufo@isbe.house"
+password = "phe6re@7"
 
-# 
-cities = ['80501', '04071', '01468']
-for idx, city in enumerate(cities):
-    cities[idx] = weather.Weather(zip_code=city)
+# Create a secure SSL context
+context = ssl.create_default_context()
+context = ssl._create_unverified_context()
 
-for city in cities:
-    city.pull()
-    print(f"Pulling weather for {city}")
-    # time.sleep(1)
-
-s = sql.sql()
-
-s.db_setup()
-
-for city in cities: 
-    city.save(s)
-
-e = my_email.email("/home/jmurray/.ssh/weather_bot.json")
-
-message = "Weather report:\n"
-for city in cities:
-    message += f"{city.zip_code}: {city.temperature[2]:5.1f} F  ({city.temperature[0]:5.1f} K,  {city.temperature[1]:5.1f} C)   \n"
-
-
-e.send(("dmurray@facitilysolutions.us", "jmurrayufo@gmail.com"), "Weatherbot: Message format test", message)
-
-print(message)
+# Try to log in to server and send email
+try:
+    server = smtplib.SMTP(smtp_server,port)
+    server.ehlo() # Can be omitted
+    server.starttls(context=context) # Secure the connection
+    server.ehlo() # Can be omitted
+    server.login(sender_email, password)
+    # TODO: Send email here
+except Exception as e:
+    # Print any error messages to stdout
+    print(e)
+finally:
+    server.quit() 
