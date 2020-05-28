@@ -196,11 +196,8 @@ class Influx(Weather):
 
         host = self.influxDB_host + '/write'
         params = {"db":"weather","precision":"s"}
-        print(host)
-        print(data)
         try:
             r = requests.post( host, params=params, data=data, timeout=1)
         except Exception as e:
             print("Error",e)
             time.sleep(1)
-        print("Saved.")

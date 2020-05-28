@@ -34,7 +34,6 @@ cities = {
 os.chdir(os.path.dirname(__file__))
 
 for zip_code in cities:
-    print(zip_code, cities[zip_code])
     city = cities[zip_code]
     w = weather.Influx(zip_code, lat=city['lat'], lon=city['lon'], name=city['name'], state=city['state'])
     w.pull()
