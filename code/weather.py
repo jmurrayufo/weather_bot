@@ -7,7 +7,8 @@ import time
 class Weather:
 
 
-    def __init__(self, zip_code, lat, lon, name, state):
+    def __init__(self, args, zip_code, lat, lon, name, state):
+        self.args = args
         self.zip_code = zip_code
         self.lat = lat
         self.lon = lon
@@ -25,9 +26,9 @@ class Weather:
         with open("/home/jmurray/.ssh/weather_bot.json","r") as fp:
             data = json.load(fp)
             return data['api_token']
-    
 
-    def pull(self):
+
+    def pull_weather(self):
         r = requests.get('https://api.openweathermap.org/data/2.5/weather', 
                          params={
                             'lat':self.lat, 
@@ -35,76 +36,72 @@ class Weather:
                             'appid': self.key,}
                         )
         r.raise_for_status()
-        self.data = r.json()
+        request_data = r.json()
+        self.data = {}
+
+        self.data['temperature'] = request_data['main']['temp']
+        self.data['clouds'] = request_data['clouds']['all']
+        self.data['feels_like'] = request_data['main']['feels_like']
+        self.data['humidity'] = request_data['main']['humidity']
+        self.data['pressure'] = request_data['main']['pressure']
+        self.data['wind_deg'] = request_data['wind'].get('deg', 0)
+        self.data['wind_speed'] = request_data['wind'].get('speed', 0)
+        # data += f",dew_point={self.data['current']['dew_point']}"
+        # data += f",uvi={self.data['current']['uvi']}"
+        # data += f",wind_gust={self.data['current'].get('wind_gust', 0)}"
+
+        if 'visibility' in request_data:
+            self.data['visibility'] = request_data['visibility']
+
+        if 'rain' in request_data and '1h' in request_data['rain']:
+            self.data['rain_1h'] = request_data['rain']['1h']
+        else:
+            self.data['rain_1h'] = 0
+
+        if 'snow' in request_data and '1h' in request_data['snow']:
+            self.data['snow_1h'] = request_data['snow']['1h']
+        else:
+            self.data['snow_1h'] = 0
+
         return self
 
 
-    @property
-    def wind(self):
-        # Return wind dict if it exists, or None load dict if empty
-        if self.data is None:
-            self.pull()
-        if 'wind' in self.data and 'deg' in self.data['wind']:
-            return self.data['wind']
+    def pull_onecall(self):
+        r = requests.get('https://api.openweathermap.org/data/2.5/onecall', 
+                         params={
+                            'lat':self.lat, 
+                            'lon':self.lon, 
+                            'appid': self.key,}
+                        )
+        r.raise_for_status()
+        request_data = r.json()
+        self.data = {}
+
+        self.data['temperature'] = request_data['current']['temp']
+        self.data['clouds'] = request_data['current']['clouds']
+        self.data['feels_like'] = request_data['current']['feels_like']
+        self.data['humidity'] = request_data['current']['humidity']
+        self.data['pressure'] = request_data['current']['pressure']
+        self.data['wind_speed'] = request_data['current']['wind_speed']
+        self.data['wind_deg'] = request_data['current']['wind_deg']
+        self.data['dew_point'] = request_data['current']['dew_point']
+        self.data['uvi'] = request_data['current']['uvi']
+        self.data['wind_gust'] = request_data['current'].get('wind_gust', 0)
+
+        if 'visibility' in request_data['current']:
+            self.data['visibility'] = request_data['current']['visibility']
+
+        if 'rain' in request_data['current'] and '1h' in request_data['current']['rain']:
+            self.data['rain_1h'] = request_data['current']['rain']['1h']
         else:
-            return {'speed': None, 'deg': None}
+            self.data['rain_1h'] = 0
 
-
-    @property
-    def pressure(self):
-        # Return pressure dict if it exists, or None load dict if empty
-        if self.data is None:
-            self.pull()
-        ret_dict = {}
-        ret_dict['pressure'] = self.data['main']['pressure']
-        ret_dict['grnd_level'] = self.data['main']['grnd_level'] if ( 'grnd_level' in self.data['main'] ) else None
-        return ret_dict
-
-
-    @property
-    def rain(self):
-        # Return rain dict if it exists, or None load dict if empty
-        if self.data is None:
-            self.pull()
-        ret_dict = {}
-        if 'rain' in self.data and '1h' in self.data['rain']:
-            ret_dict['1h'] = self.data['rain']['1h']
+        if 'snow' in request_data['current'] and '1h' in request_data['current']['snow']:
+            self.data['snow_1h'] = request_data['current']['snow']['1h']
         else:
-            ret_dict['1h'] = 0.0
-        if 'rain' in self.data and '3h' in self.data['rain']:
-            ret_dict['3h'] = self.data['rain']['3h']
-        else:
-            ret_dict['3h'] = 0.0
-        return ret_dict
+            self.data['snow_1h'] = 0
 
-
-    @property
-    def snow(self):
-        # Return snow dict if it exists, or None load dict if empty
-        if self.data is None:
-            self.pull()
-        ret_dict = {}
-        if 'snow' in self.data and '1h' in self.data['snow']:
-            ret_dict['1h'] = self.data['snow']['1h']
-        else:
-            ret_dict['1h'] = 0.0
-        if 'snow' in self.data and '3h' in self.data['snow']:
-            ret_dict['3h'] = self.data['snow']['3h']
-        else:
-            ret_dict['3h'] = 0.0
-        return ret_dict
-
-
-
-    @property
-    def temperature(self):
-        # Return a tuple of kelvin, ceclius and fahrenheit 
-        if self.data is None:
-            self.pull()
-        k = self.data['current']['temp']
-        c = k - 273.15
-        f = (k - 273.15) * 9 / 5 + 32
-        return (k, c, f)
+        return self
 
 
 class SQL(Weather):
@@ -168,36 +165,20 @@ class Influx(Weather):
     influxDB_host = "http://192.168.4.3:8086"
 
     def save(self):
-        data = ""
-        data += f"weather,zip_code={self.zip_code},lat={self.lat},lon={self.lon},name={self.name},state={self.state} "
-        data += f"temperature={self.data['main']['temp']}"
-        data += f",clouds={self.data['clouds']['all']}"
-        data += f",feels_like={self.data['main']['feels_like']}"
-        data += f",humidity={self.data['main']['humidity']}"
-        data += f",pressure={self.data['main']['pressure']}"
-        data += f",wind_deg={self.data['wind'].get('deg', 0)}"
-        data += f",wind_speed={self.data['wind'].get('speed', 0)}"
-        # data += f",dew_point={self.data['current']['dew_point']}"
-        # data += f",uvi={self.data['current']['uvi']}"
-        data += f",visibility={self.data['visibility']}"
-        # data += f",wind_gust={self.data['current'].get('wind_gust', 0)}"
+        data = []
 
-        try:
-            data += f",rain_1h={self.data['rain']['1h']}"
-        except KeyError:
-            data += f",rain_1h=0"
-
-        try:
-            data += f",snow_1h={self.data['snow']['1h']}"
-        except KeyError:
-            data += f",snow_1h=0"
-
+        for element in self.data:
+            data.append(f"{element}={self.data[element]}")
+        data = f"weather,zip_code={self.zip_code},lat={self.lat},lon={self.lon},name={self.name},state={self.state} " + ",".join(data)
+        if self.args.verbose > 1:
+            print(data)
         data += "\n"
 
         host = self.influxDB_host + '/write'
         params = {"db":"weather","precision":"s"}
         try:
             r = requests.post( host, params=params, data=data, timeout=1)
+            r.raise_for_status()
         except Exception as e:
             print("Error",e)
             time.sleep(1)
