@@ -10,8 +10,6 @@ import time
 # Local imports
 import weather
 
-cities = ['80501', '04071', '01468']
-
 parser = argparse.ArgumentParser()
 parser.add_argument(
     "--onecall", 
@@ -30,34 +28,43 @@ if args.verbose > 2:
     print(args)
 
 # IMPORTANT: Names cannot have spaces or commas. Use - or _ 
-cities = {
-    '80501':{
-        "name": "Longmont",
+cities = [
+    {
+        "zip_code": '80501',
         "state": "CO",
-        "lat": 40.18,
+        "name": "Longmont",
         "lon":-105.1,
+        "lat": 40.18,
     },
-    '04071':{
-        "name": "Raymond",
+    {
+        "zip_code": '04071',
         "state": "ME",
-        "lat": 43.92,
+        "name": "Raymond",
         "lon": -70.45,
+        "lat": 43.92,
     },
-    '01468':{
-        "name": "Templeton",
+    {
+        "zip_code": '01468',
         "state": "MA",
-        "lat": 42.55,
+        "name": "Templeton",
         "lon": -72.06,
+        "lat": 42.55,
     },
-}
+    {
+        "zip_code": '94107',
+        "state": "CA",
+        "name": "San-Francisco",
+        "lon": -122.3986,
+        "lat": 37.7618,
+    },
+]
 
 os.chdir(os.path.dirname(__file__))
 
-for zip_code in cities:
-    city = cities[zip_code]
+for city in cities:
     if args.verbose > 0:
         print(f"Pulling: {city['name']}")
-    w = weather.Influx(args, zip_code, lat=city['lat'], lon=city['lon'], name=city['name'], state=city['state'])
+    w = weather.Influx(args, city['zip_code'], lat=city['lat'], lon=city['lon'], name=city['name'], state=city['state'])
     if args.onecall:
         w.pull_onecall()
     else:

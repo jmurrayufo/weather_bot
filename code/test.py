@@ -1,25 +1,42 @@
 #!/usr/bin/env python
-import smtplib, ssl
 
-smtp_server = "box.isbe.house"
-port = 587  # For starttls
-sender_email = "jmurrayufo@isbe.house"
-password = "phe6re@7"
+import eco_bee
+from pprint import pprint
 
-# Create a secure SSL context
-context = ssl.create_default_context()
-context = ssl._create_unverified_context()
+e = eco_bee.ECO_BEE()
 
-# Try to log in to server and send email
-try:
-    server = smtplib.SMTP(smtp_server,port)
-    server.ehlo() # Can be omitted
-    server.starttls(context=context) # Secure the connection
-    server.ehlo() # Can be omitted
-    server.login(sender_email, password)
-    # TODO: Send email here
-except Exception as e:
-    # Print any error messages to stdout
-    print(e)
-finally:
-    server.quit() 
+e.pull()
+exit()
+
+
+import requests
+
+API_KEY = "TZRZoAwxdq6syrj35K4GTUwVg78oyZcI"
+auth_code = "wmL1Xerhr0Ayc9MoQoKqoja5ouS6DVtj"
+
+url = "https://api.ecobee.com/authorize"
+
+params = {
+    "response_type":"ecobeePin",
+    "client_id": API_KEY,
+    "scope":"smartWrite",
+}
+
+# r = requests.get(url, params=params)
+
+# print(r)
+# print(r.json())
+
+
+url = "https://api.ecobee.com/token"
+
+
+params = {
+    "grant_type":"ecobeePin",
+    "client_id": API_KEY,
+    "code": auth_code,
+}
+r = requests.post(url, params=params)
+
+print(r)
+print(r.json())

@@ -3,6 +3,8 @@ import requests
 import json
 import sql
 import time
+import astral
+import astral.sun
 
 class Weather:
 
@@ -62,6 +64,10 @@ class Weather:
             self.data['snow_1h'] = request_data['snow']['1h']
         else:
             self.data['snow_1h'] = 0
+
+        observer = astral.Observer(self.lat, self.lon)
+        self.data['sun_elivation'] = astral.sun.elevation(observer)
+        self.data['sun_azimuth'] = astral.sun.azimuth(observer)
 
         return self
 
