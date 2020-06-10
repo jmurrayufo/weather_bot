@@ -121,7 +121,7 @@ class ECO_BEE:
             ts = target_times[i]
             # print(ts)
             ts = str(int(ts.timestamp()))
-            data = f"eco_bee,name={name} " + ",".join(data) + " " + ts
+            data = f"eco_bee,thermostat_name={name} " + ",".join(data) + " " + ts
             # if self.args.verbose > 1:
             #     print(data)
             data += "\n"
