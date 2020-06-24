@@ -6,6 +6,8 @@ import argparse
 import datetime
 import os
 import time
+import logging
+import sys
 
 # Local imports
 import weather
@@ -26,6 +28,27 @@ parser.add_argument(
 args = parser.parse_args()
 if args.verbose > 2:
     print(args)
+
+# create log with 'spam_application'
+log = logging.getLogger()
+log.setLevel(logging.INFO)
+# create file handler which logs even debug messages
+fh = logging.FileHandler('spam.log')
+fh.setLevel(logging.DEBUG)
+# create console handler with a higher log level
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.DEBUG)
+# create formatter and add it to the handlers
+formatter = logging.Formatter(
+    '{asctime} - {levelname} - {filename}:{funcName}[{lineno}] {message}',
+    style="{")
+fh.setFormatter(formatter)
+ch.setFormatter(formatter)
+# add the handlers to the log
+# log.addHandler(fh)
+log.addHandler(ch)
+
+log.info("Booted")
 
 # IMPORTANT: Names cannot have spaces or commas. Use - or _ 
 cities = [
@@ -57,20 +80,32 @@ cities = [
         "lon": -122.3986,
         "lat": 37.7618,
     },
+    {
+        "zip_code": 'N/A',
+        "state": "FR",
+        "name": "Toulouse",
+        "lon": 1.4442,
+        "lat": 43.6047,
+    },
 ]
 
 os.chdir(os.path.dirname(__file__))
 
-for city in cities:
-    if args.verbose > 0:
-        print(f"Pulling: {city['name']}")
-    w = weather.Influx(args, city['zip_code'], lat=city['lat'], lon=city['lon'], name=city['name'], state=city['state'])
-    if args.onecall:
-        w.pull_onecall()
-    else:
-        w.pull_weather()
-    # pprint(w.data)
-    w.save()
-    if args.verbose > 1:
-        print(f"Saved: {city['name']}\n")
-
+try:
+    for city in cities:
+        log.info(f"Pulling data for {city['name']}")
+        if args.verbose > 0:
+            print(f"Pulling: {city['name']}")
+        w = weather.Influx(args, city['zip_code'], lat=city['lat'], lon=city['lon'], name=city['name'], state=city['state'])
+        if args.onecall:
+            log.info("Making One Call call")
+            w.pull_onecall()
+        else:
+            log.info("Making Normal call")
+            w.pull_weather()
+        # pprint(w.data)
+        w.save()
+        log.info(f"Saved: {city['name']}")
+except Exception as e:
+    log.error(f"Errored out with {e}")
+    sys.exit(-1)
