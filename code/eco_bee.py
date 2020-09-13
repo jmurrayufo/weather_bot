@@ -108,6 +108,11 @@ class ECO_BEE:
         for i in range(3):
 
             save_data['cool1'] = raw_data['cool1'][i]
+            save_data['heatPump1'] = raw_data['heatPump1'][i]
+            save_data['heatPump2'] = raw_data['heatPump2'][i]
+            save_data['auxHeat1'] = raw_data['auxHeat1'][i]
+            save_data['auxHeat2'] = raw_data['auxHeat2'][i]
+            save_data['auxHeat3'] = raw_data['auxHeat3'][i]
             save_data['humidity'] = raw_data['actualHumidity'][i]
             save_data['temperature'] = self.f10_to_c(raw_data['actualTemperature'][i])
             save_data['target_cool'] = self.f10_to_c(raw_data['desiredCool'][i])
